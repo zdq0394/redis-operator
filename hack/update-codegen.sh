@@ -6,7 +6,7 @@ set -o pipefail
 
 # Ugly but needs to be relative if we want to use k8s.io/code-generator
 # as it is without touching/sed-ing the code/scripts
-CODEGEN_PKG=./../../../../..${GOPATH}/src/k8s.io/code-generator
+CODEGEN_PKG=./vendor/k8s.io/code-generator
 
 # Add all groups space separated.
 GROUPS_VERSION="redisfailover:v1"
