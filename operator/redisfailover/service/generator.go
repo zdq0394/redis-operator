@@ -186,9 +186,9 @@ func generateRedisStatefulSet(rf *redisfailoverv1.RedisFailover, labels map[stri
 					Labels: labels,
 				},
 				Spec: corev1.PodSpec{
-					Affinity:        getAffinity(rf.Spec.Redis.Affinity, labels),
-					Tolerations:     rf.Spec.Redis.Tolerations,
-					SecurityContext: getSecurityContext(rf.Spec.Redis.SecurityContext),
+					Affinity:    getAffinity(rf.Spec.Redis.Affinity, labels),
+					Tolerations: rf.Spec.Redis.Tolerations,
+					// SecurityContext: getSecurityContext(rf.Spec.Redis.SecurityContext),
 					Containers: []corev1.Container{
 						{
 							Name:            "redis",
@@ -199,6 +199,7 @@ func generateRedisStatefulSet(rf *redisfailoverv1.RedisFailover, labels map[stri
 									Name:          "redis",
 									ContainerPort: 6379,
 									Protocol:      corev1.ProtocolTCP,
+									HostPort:      rf.Spec.Redis.HostPort,
 								},
 							},
 							VolumeMounts: volumeMounts,
@@ -289,9 +290,9 @@ func generateSentinelDeployment(rf *redisfailoverv1.RedisFailover, labels map[st
 					Labels: labels,
 				},
 				Spec: corev1.PodSpec{
-					Affinity:        getAffinity(rf.Spec.Sentinel.Affinity, labels),
-					Tolerations:     rf.Spec.Sentinel.Tolerations,
-					SecurityContext: getSecurityContext(rf.Spec.Sentinel.SecurityContext),
+					Affinity:    getAffinity(rf.Spec.Sentinel.Affinity, labels),
+					Tolerations: rf.Spec.Sentinel.Tolerations,
+					// SecurityContext: getSecurityContext(rf.Spec.Sentinel.SecurityContext),
 					InitContainers: []corev1.Container{
 						{
 							Name:            "sentinel-config-copy",
@@ -334,6 +335,7 @@ func generateSentinelDeployment(rf *redisfailoverv1.RedisFailover, labels map[st
 									Name:          "sentinel",
 									ContainerPort: 26379,
 									Protocol:      corev1.ProtocolTCP,
+									HostPort:      rf.Spec.Sentinel.HostPort,
 								},
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -464,6 +466,13 @@ func getAffinity(affinity *corev1.Affinity, labels map[string]string) *corev1.Af
 		return affinity
 	}
 
+	myLabels := map[string]string{}
+	for k, v := range labels {
+		if k != "app.kubernetes.io/component" {
+			myLabels[k] = v
+		}
+	}
+
 	// Return a SOFT anti-affinity
 	return &corev1.Affinity{
 		PodAntiAffinity: &corev1.PodAntiAffinity{
@@ -473,7 +482,7 @@ func getAffinity(affinity *corev1.Affinity, labels map[string]string) *corev1.Af
 					PodAffinityTerm: corev1.PodAffinityTerm{
 						TopologyKey: hostnameTopologyKey,
 						LabelSelector: &metav1.LabelSelector{
-							MatchLabels: labels,
+							MatchLabels: myLabels,
 						},
 					},
 				},

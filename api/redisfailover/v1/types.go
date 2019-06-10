@@ -34,6 +34,7 @@ type RedisSettings struct {
 	Affinity          *corev1.Affinity            `json:"affinity,omitempty"`
 	SecurityContext   *corev1.PodSecurityContext  `json:"securityContext,omitempty"`
 	Tolerations       []corev1.Toleration         `json:"tolerations,omitempty"`
+	HostPort          int32                       `json:"hostport,omitempty"`
 }
 
 // SentinelSettings defines the specification of the sentinel cluster
@@ -46,6 +47,7 @@ type SentinelSettings struct {
 	Affinity        *corev1.Affinity            `json:"affinity,omitempty"`
 	SecurityContext *corev1.PodSecurityContext  `json:"securityContext,omitempty"`
 	Tolerations     []corev1.Toleration         `json:"tolerations,omitempty"`
+	HostPort        int32                       `json:"hostport,omitempty"`
 }
 
 // RedisExporter defines the specification for the redis exporter
