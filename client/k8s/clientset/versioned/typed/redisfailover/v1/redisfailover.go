@@ -37,6 +37,7 @@ type RedisFailoversGetter interface {
 type RedisFailoverInterface interface {
 	Create(*v1.RedisFailover) (*v1.RedisFailover, error)
 	Update(*v1.RedisFailover) (*v1.RedisFailover, error)
+	UpdateStatus(*v1.RedisFailover) (*v1.RedisFailover, error)
 	Delete(name string, options *meta_v1.DeleteOptions) error
 	DeleteCollection(options *meta_v1.DeleteOptions, listOptions meta_v1.ListOptions) error
 	Get(name string, options meta_v1.GetOptions) (*v1.RedisFailover, error)
@@ -114,6 +115,22 @@ func (c *redisFailovers) Update(redisFailover *v1.RedisFailover) (result *v1.Red
 		Namespace(c.ns).
 		Resource("redisfailovers").
 		Name(redisFailover.Name).
+		Body(redisFailover).
+		Do().
+		Into(result)
+	return
+}
+
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
+
+func (c *redisFailovers) UpdateStatus(redisFailover *v1.RedisFailover) (result *v1.RedisFailover, err error) {
+	result = &v1.RedisFailover{}
+	err = c.client.Put().
+		Namespace(c.ns).
+		Resource("redisfailovers").
+		Name(redisFailover.Name).
+		SubResource("status").
 		Body(redisFailover).
 		Do().
 		Into(result)
