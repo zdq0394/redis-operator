@@ -66,14 +66,21 @@ type RedisStorage struct {
 
 // RedisNode defines the structure used to store the Redis Node Info
 type RedisNode struct {
-	PodIP    string `json:"podIP,omitempty"`
+     	PodIP    string `json:"podIP,omitempty"`
 	HostIP   string `json:"hostIP,omitempty"`
 	IsMaster bool   `json:"isMaster,omitempty"`
 }
 
+// SentinelNode defines the structure used to store the Sentinel Node Info
+type SentinelNode struct {
+        PodIP    string `json:"podIP,omitempty"`
+        HostIP   string `json:"hostIP,omitempty"`
+}
+
 // RedisFailoverStatus defines the structure used to store the RedisFailoverStatus Info
 type RedisFailoverStatus struct {
-	RedisNodes []RedisNode `json:"redisNodes,omitempty"`
+	RedisNodes    []RedisNode    `json:"redisNodes,omitempty"`
+        SentinelNodes []SentinelNode `json:"sentinelNodes,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
