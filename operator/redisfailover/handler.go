@@ -120,9 +120,15 @@ func (w *RedisFailoverHandler) createOwnerReferences(rf *redisfailoverv1.RedisFa
 func (r *RedisFailoverHandler) setRedisFailoverStatus(rf *redisfailoverv1.RedisFailover) error {
 	redisNodes, err := r.rfChecker.GetRedisesIPandHostIPs(rf)
 	if err != nil {
-		return fmt.Errorf("get redisfailover status for %s:%s failed", rf.Namespace, rf.Name)
+		return fmt.Errorf("get redisfailover status redis nodes for %s:%s failed", rf.Namespace, rf.Name)
 	}
 	rf.Status.RedisNodes = redisNodes
+
+	sentinelNodes, err := r.rfChecker.GetSentinelsIPandHostIPs(rf)
+	if err != nil {
+		return fmt.Errorf("get redisfailover status sentinel nodes for %s:%s failed", rf.Namespace, rf.Name)
+	}
+	rf.Status.SentinelNodes = sentinelNodes
 	if _, err := r.k8sservice.UpdateRedisFailovers(rf.Namespace, rf); err != nil {
 		return err
 	}

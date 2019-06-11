@@ -26,6 +26,7 @@ type RedisFailoverCheck interface {
 	GetRedisesIPs(rFailover *redisfailoverv1.RedisFailover) ([]string, error)
 	GetRedisesIPandHostIPs(rFailover *redisfailoverv1.RedisFailover) ([]redisfailoverv1.RedisNode, error)
 	GetSentinelsIPs(rFailover *redisfailoverv1.RedisFailover) ([]string, error)
+	GetSentinelsIPandHostIPs(rf *redisfailoverv1.RedisFailover) ([]redisfailoverv1.SentinelNode, error)
 	GetMinimumRedisPodTime(rFailover *redisfailoverv1.RedisFailover) (time.Duration, error)
 }
 
@@ -212,6 +213,25 @@ func (r *RedisFailoverChecker) GetSentinelsIPs(rf *redisfailoverv1.RedisFailover
 	for _, sp := range rps.Items {
 		if sp.Status.Phase == corev1.PodRunning { // Only work with running pods
 			sentinels = append(sentinels, sp.Status.PodIP)
+		}
+	}
+	return sentinels, nil
+}
+
+// GetSentinelsIPandHostIPs returns the IPs of the Sentinel nodes
+func (r *RedisFailoverChecker) GetSentinelsIPandHostIPs(rf *redisfailoverv1.RedisFailover) ([]redisfailoverv1.SentinelNode, error) {
+	sentinels := []redisfailoverv1.SentinelNode{}
+	rps, err := r.k8sService.GetDeploymentPods(rf.Namespace, GetSentinelName(rf))
+	if err != nil {
+		return nil, err
+	}
+	for _, sp := range rps.Items {
+		if sp.Status.Phase == corev1.PodRunning { // Only work with running pods
+			sentinelNode := redisfailoverv1.SentinelNode{
+				PodIP:  sp.Status.PodIP,
+				HostIP: sp.Status.HostIP,
+			}
+			sentinels = append(sentinels, sentinelNode)
 		}
 	}
 	return sentinels, nil
