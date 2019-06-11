@@ -46,5 +46,5 @@ func (r *RedisFailoverService) WatchRedisFailovers(namespace string, opts metav1
 
 // UpdateRedisFailovers ...
 func (r *RedisFailoverService) UpdateRedisFailovers(namespace string, redisFailoverObject *redisfailoverv1.RedisFailover) (*redisfailoverv1.RedisFailover, error) {
-	return r.crdClient.DatabasesV1().RedisFailovers(namespace).UpdateStatus(redisFailoverObject)
+	return r.crdClient.DatabasesV1().RedisFailovers(namespace).Update(redisFailoverObject)
 }
