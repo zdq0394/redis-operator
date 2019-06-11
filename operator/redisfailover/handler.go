@@ -31,7 +31,7 @@ var (
 // resources that a RF needs.
 type RedisFailoverHandler struct {
 	config     Config
-	k8sservice k8s.Service
+	k8sservice k8s.Services
 	rfService  rfservice.RedisFailoverClient
 	rfChecker  rfservice.RedisFailoverCheck
 	rfHealer   rfservice.RedisFailoverHeal
@@ -40,7 +40,7 @@ type RedisFailoverHandler struct {
 }
 
 // NewRedisFailoverHandler returns a new RF handler
-func NewRedisFailoverHandler(config Config, rfService rfservice.RedisFailoverClient, rfChecker rfservice.RedisFailoverCheck, rfHealer rfservice.RedisFailoverHeal, k8sservice k8s.Service, mClient metrics.Instrumenter, logger log.Logger) *RedisFailoverHandler {
+func NewRedisFailoverHandler(config Config, rfService rfservice.RedisFailoverClient, rfChecker rfservice.RedisFailoverCheck, rfHealer rfservice.RedisFailoverHeal, k8sservice k8s.Services, mClient metrics.Instrumenter, logger log.Logger) *RedisFailoverHandler {
 	return &RedisFailoverHandler{
 		config:     config,
 		rfService:  rfService,
@@ -81,6 +81,11 @@ func (r *RedisFailoverHandler) Add(_ context.Context, obj runtime.Object) error 
 		return err
 	}
 
+	if err := r.setRedisFailoverStatus(rf); err != nil {
+		r.logger.Warningf("Failed to update redisfailover(%s:%s) status\n", rf.Namespace, rf.Name)
+		return err
+	}
+
 	r.mClient.SetClusterOK(rf.Namespace, rf.Name)
 	return nil
 }
@@ -110,4 +115,16 @@ func (w *RedisFailoverHandler) createOwnerReferences(rf *redisfailoverv1.RedisFa
 	return []metav1.OwnerReference{
 		*metav1.NewControllerRef(rf, rfvk),
 	}
+}
+
+func (r *RedisFailoverHandler) setRedisFailoverStatus(rf *redisfailoverv1.RedisFailover) error {
+	redisNodes, err := r.rfChecker.GetRedisesIPandHostIPs(rf)
+	if err != nil {
+		return fmt.Errorf("Get redisfailover status for %s:%s failed.", rf.Namespace, rf.Name)
+	}
+	rf.Status.RedisNodes = redisNodes
+	if _, err := r.k8sservice.UpdateRedisFailovers(rf.Namespace, rf); err != nil {
+		return err
+	}
+	return nil
 }

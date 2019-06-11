@@ -15,6 +15,8 @@ type RedisFailover interface {
 	ListRedisFailovers(namespace string, opts metav1.ListOptions) (*redisfailoverv1.RedisFailoverList, error)
 	// WatchRedisFailovers watches the redisfailovers on a cluster.
 	WatchRedisFailovers(namespace string, opts metav1.ListOptions) (watch.Interface, error)
+	// UpdateRedisFailovers set redisfailover status
+	UpdateRedisFailovers(namespace string, redisFailoverObject *redisfailoverv1.RedisFailover) (*redisfailoverv1.RedisFailover, error)
 }
 
 // RedisFailoverService is the RedisFailover service implementation using API calls to kubernetes.
@@ -40,4 +42,9 @@ func (r *RedisFailoverService) ListRedisFailovers(namespace string, opts metav1.
 // WatchRedisFailovers satisfies redisfailover.Service interface.
 func (r *RedisFailoverService) WatchRedisFailovers(namespace string, opts metav1.ListOptions) (watch.Interface, error) {
 	return r.crdClient.DatabasesV1().RedisFailovers(namespace).Watch(opts)
+}
+
+// UpdateRedisFailovers ...
+func (r *RedisFailoverService) UpdateRedisFailovers(namespace string, redisFailoverObject *redisfailoverv1.RedisFailover) (*redisfailoverv1.RedisFailover, error) {
+	return r.crdClient.DatabasesV1().RedisFailovers(namespace).UpdateStatus(redisFailoverObject)
 }
