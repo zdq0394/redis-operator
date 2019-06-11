@@ -193,7 +193,7 @@ func (r *RedisFailoverChecker) GetRedisesIPandHostIPs(rf *redisfailoverv1.RedisF
 				HostIP: rp.Status.HostIP,
 			}
 			master, err := r.redisClient.IsMaster(rp.Status.PodIP)
-			if err != nil && master {
+			if err == nil && master {
 				redisNode.IsMaster = true
 			}
 			redises = append(redises, redisNode)
