@@ -12,7 +12,8 @@ import (
 type RedisFailover struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              RedisFailoverSpec `json:"spec"`
+	Spec              RedisFailoverSpec   `json:"spec"`
+	Status            RedisFailoverStatus `json:"status"`
 }
 
 // RedisFailoverSpec represents a Redis failover spec
@@ -61,6 +62,18 @@ type RedisStorage struct {
 	KeepAfterDeletion     bool                          `json:"keepAfterDeletion,omitempty"`
 	EmptyDir              *corev1.EmptyDirVolumeSource  `json:"emptyDir,omitempty"`
 	PersistentVolumeClaim *corev1.PersistentVolumeClaim `json:"persistentVolumeClaim,omitempty"`
+}
+
+// RedisNode defines the structure used to store the Redis Node Info
+type RedisNode struct {
+	PodIP    string `json:"podIP,omitempty"`
+	HostIP   string `json:"hostIP,omitempty"`
+	IsMaster bool   `json:"isMaster,omitempty"`
+}
+
+// RedisFailoverStatus defines the structure used to store the RedisFailoverStatus Info
+type RedisFailoverStatus struct {
+	RedisNodes []RedisNode `json:"redisNodes,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
