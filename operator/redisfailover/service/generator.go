@@ -455,6 +455,10 @@ func createRedisExporterContainer(rf *redisfailoverv1.RedisFailover) corev1.Cont
 				Value: rf.Spec.Redis.Password,
 			},
 		},
+		Args: []string{
+			fmt.Sprintf("--redis.addr=%s", "127.0.0.1:6379"),
+			fmt.Sprintf("--redis.password=%s", rf.Spec.Redis.Password),
+		},
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          "metrics",
