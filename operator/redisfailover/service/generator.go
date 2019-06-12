@@ -459,6 +459,7 @@ func createRedisExporterContainer(rf *redisfailoverv1.RedisFailover) corev1.Cont
 			{
 				Name:          "metrics",
 				ContainerPort: exporterPort,
+				HostPort:      rf.Spec.Redis.Exporter.HostPort,
 				Protocol:      corev1.ProtocolTCP,
 			},
 		},

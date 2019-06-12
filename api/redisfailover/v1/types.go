@@ -54,8 +54,9 @@ type SentinelSettings struct {
 
 // RedisExporter defines the specification for the redis exporter
 type RedisExporter struct {
-	Enabled bool   `json:"enabled,omitempty"`
-	Image   string `json:"image,omitempty"`
+	Enabled  bool   `json:"enabled,omitempty"`
+	Image    string `json:"image,omitempty"`
+	HostPort int32  `json:"hostport,omitempty"`
 }
 
 // RedisStorage defines the structure used to store the Redis Data
