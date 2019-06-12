@@ -37,3 +37,10 @@ func (w *RedisFailoverHandler) Ensure(rf *redisfailoverv1.RedisFailover, labels 
 
 	return nil
 }
+
+func (w *RedisFailoverHandler) EnsureRedisPerceptronDeployment(rf *redisfailoverv1.RedisFailover, hostIPs []string, labels map[string]string, ownerRefs []metav1.OwnerReference) error {
+	if err := w.rfService.EnsureRedisPerceptronDeployment(rf, hostIPs, labels, ownerRefs); err != nil {
+		return err
+	}
+	return nil
+}

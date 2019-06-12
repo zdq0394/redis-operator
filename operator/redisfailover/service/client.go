@@ -21,6 +21,7 @@ type RedisFailoverClient interface {
 	EnsureRedisShutdownConfigMap(rFailover *redisfailoverv1.RedisFailover, labels map[string]string, ownerRefs []metav1.OwnerReference) error
 	EnsureRedisConfigMap(rFailover *redisfailoverv1.RedisFailover, labels map[string]string, ownerRefs []metav1.OwnerReference) error
 	EnsureNotPresentRedisService(rFailover *redisfailoverv1.RedisFailover) error
+	EnsureRedisPerceptronDeployment(rFailover *redisfailoverv1.RedisFailover, hostIPs []string, labels map[string]string, ownerRefs []metav1.OwnerReference) error
 }
 
 // RedisFailoverKubeClient implements the required methods to talk with kubernetes
@@ -122,4 +123,10 @@ func (r *RedisFailoverKubeClient) ensurePodDisruptionBudget(rf *redisfailoverv1.
 	pdb := generatePodDisruptionBudget(name, namespace, labels, ownerRefs, minAvailable)
 
 	return r.K8SService.CreateOrUpdatePodDisruptionBudget(namespace, pdb)
+}
+
+// EnsureRedisPerceptronDeployment ...
+func (r *RedisFailoverKubeClient) EnsureRedisPerceptronDeployment(rf *redisfailoverv1.RedisFailover, hostIPs []string, labels map[string]string, ownerRefs []metav1.OwnerReference) error {
+	d := generatePerceptronDeployment(rf, hostIPs, labels, ownerRefs)
+	return r.K8SService.CreateOrUpdateDeployment(rf.Namespace, d)
 }

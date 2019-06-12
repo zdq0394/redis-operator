@@ -29,6 +29,11 @@ func GetSentinelName(rf *redisfailoverv1.RedisFailover) string {
 	return generateName(sentinelName, rf.Name)
 }
 
+// GetPerceptronName returns the name for perceptron resources
+func GetPerceptronName(rf *redisfailoverv1.RedisFailover) string {
+	return generateName("p", rf.Name)
+}
+
 func generateName(typeName, metaName string) string {
 	return fmt.Sprintf("%s%s-%s", baseName, typeName, metaName)
 }

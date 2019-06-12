@@ -32,6 +32,7 @@ type RedisSettings struct {
 	ShutdownConfigMap string                      `json:"shutdownConfigMap,omitempty"`
 	Storage           RedisStorage                `json:"storage,omitempty"`
 	Exporter          RedisExporter               `json:"exporter,omitempty"`
+	Perceptron        RedisPerceptron             `json:"perceptron,omitempty"`
 	Affinity          *corev1.Affinity            `json:"affinity,omitempty"`
 	SecurityContext   *corev1.PodSecurityContext  `json:"securityContext,omitempty"`
 	Tolerations       []corev1.Toleration         `json:"tolerations,omitempty"`
@@ -57,6 +58,15 @@ type RedisExporter struct {
 	Enabled  bool   `json:"enabled,omitempty"`
 	Image    string `json:"image,omitempty"`
 	HostPort int32  `json:"hostport,omitempty"`
+}
+
+// RedisPerceptron defines the specification for the redis perceptron
+type RedisPerceptron struct {
+	Enabled      bool   `json:"enabled,omitempty"`
+	Image        string `json:"image,omitempty"`
+	ProxyURL     string `json:"proxyURL,omitempty"`
+	RegisterPort int32  `json:"registerPort,omitempty"`
+	TTL          string `json:"ttl,omitempty"`
 }
 
 // RedisStorage defines the structure used to store the Redis Data

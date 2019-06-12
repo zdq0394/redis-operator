@@ -82,8 +82,20 @@ func (r *RedisFailoverHandler) Add(_ context.Context, obj runtime.Object) error 
 	}
 
 	if err := r.setRedisFailoverStatus(rf); err != nil {
-		r.logger.Warningf("Failed to update redisfailover(%s:%s) status\n", rf.Namespace, rf.Name)
+		r.logger.Errorf("Failed to update redisfailover(%s:%s) status\n", rf.Namespace, rf.Name)
 		return err
+	}
+
+	if rf.Spec.Redis.Perceptron.Enabled {
+		redisNodes, err := r.rfChecker.GetRedisesIPandHostIPs(rf)
+		if err != nil {
+			r.logger.Errorf("Failed to get Redis nodes info of redisfailover(%s:%s)\n", rf.Namespace, rf.Name)
+		}
+		hostIPs := []string{}
+		for _, rNode := range redisNodes {
+			hostIPs = append(hostIPs, rNode.HostIP)
+		}
+		r.EnsureRedisPerceptronDeployment(rf, hostIPs, labels, oRefs)
 	}
 
 	r.mClient.SetClusterOK(rf.Namespace, rf.Name)

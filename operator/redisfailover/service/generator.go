@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -272,6 +273,73 @@ func generateRedisStatefulSet(rf *redisfailoverv1.RedisFailover, labels map[stri
 	}
 
 	return ss
+}
+
+func generatePerceptronDeployment(rf *redisfailoverv1.RedisFailover, hostIPs []string, labels map[string]string, ownerRefs []metav1.OwnerReference) *appsv1.Deployment {
+	name := GetPerceptronName(rf)
+	namespace := rf.Namespace
+
+	selectorLabels := generateSelectorLabels("perceptron", rf.Name)
+	labels = util.MergeLabels(labels, selectorLabels)
+	var perceptronReplica int32 = 1
+	return &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            name,
+			Namespace:       namespace,
+			Labels:          labels,
+			OwnerReferences: ownerRefs,
+		},
+
+		Spec: appsv1.DeploymentSpec{
+			Replicas: &perceptronReplica,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: selectorLabels,
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:            "perceptron",
+							Image:           rf.Spec.Redis.Perceptron.Image,
+							ImagePullPolicy: "Always",
+							Env: []corev1.EnvVar{
+								{
+									Name:  "ProxyURL",
+									Value: rf.Spec.Redis.Perceptron.ProxyURL,
+								},
+								{
+									Name:  "REDIS_HOST",
+									Value: strings.Join(hostIPs, ","),
+								},
+								{
+									Name:  "AUTH",
+									Value: rf.Spec.Redis.Password,
+								},
+								{
+									Name:  "REGISTER_PORT",
+									Value: string(rf.Spec.Redis.Perceptron.RegisterPort),
+								},
+								{
+									Name:  "TTL",
+									Value: rf.Spec.Redis.Perceptron.TTL,
+								},
+							},
+							Ports: []corev1.ContainerPort{
+								{
+									Name:          "perceptron",
+									ContainerPort: 8090,
+									Protocol:      corev1.ProtocolTCP,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 }
 
 func generateSentinelDeployment(rf *redisfailoverv1.RedisFailover, labels map[string]string, ownerRefs []metav1.OwnerReference) *appsv1.Deployment {
