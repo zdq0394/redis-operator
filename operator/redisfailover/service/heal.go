@@ -13,7 +13,7 @@ import (
 
 // RedisFailoverHeal defines the interface able to fix the problems on the redis failovers
 type RedisFailoverHeal interface {
-	MakeMaster(ip string) error
+	MakeMaster(ip string, password string) error
 	SetOldestAsMaster(rFailover *redisfailoverv1.RedisFailover) error
 	SetMasterOnAll(masterIP string, rFailover *redisfailoverv1.RedisFailover) error
 	NewSentinelMonitor(ip string, monitor string, rFailover *redisfailoverv1.RedisFailover) error
@@ -38,8 +38,8 @@ func NewRedisFailoverHealer(k8sService k8s.Services, redisClient redis.Client, l
 	}
 }
 
-func (r *RedisFailoverHealer) MakeMaster(ip string) error {
-	return r.redisClient.MakeMaster(ip)
+func (r *RedisFailoverHealer) MakeMaster(ip string, password string) error {
+	return r.redisClient.MakeMaster(ip, password)
 }
 
 // SetOldestAsMaster puts all redis to the same master, choosen by order of appearance
@@ -62,12 +62,12 @@ func (r *RedisFailoverHealer) SetOldestAsMaster(rf *redisfailoverv1.RedisFailove
 		if newMasterIP == "" {
 			newMasterIP = pod.Status.PodIP
 			r.logger.Debugf("New master is %s with ip %s", pod.Name, newMasterIP)
-			if err := r.redisClient.MakeMaster(newMasterIP); err != nil {
+			if err := r.redisClient.MakeMaster(newMasterIP, rf.Spec.Redis.Password); err != nil {
 				return err
 			}
 		} else {
 			r.logger.Debugf("Making pod %s slave of %s", pod.Name, newMasterIP)
-			if err := r.redisClient.MakeSlaveOf(pod.Status.PodIP, newMasterIP); err != nil {
+			if err := r.redisClient.MakeSlaveOf(pod.Status.PodIP, newMasterIP, rf.Spec.Redis.Password); err != nil {
 				return err
 			}
 		}
@@ -84,12 +84,12 @@ func (r *RedisFailoverHealer) SetMasterOnAll(masterIP string, rf *redisfailoverv
 	for _, pod := range ssp.Items {
 		if pod.Status.PodIP == masterIP {
 			r.logger.Debugf("Ensure pod %s is master", pod.Name)
-			if err := r.redisClient.MakeMaster(masterIP); err != nil {
+			if err := r.redisClient.MakeMaster(masterIP, rf.Spec.Redis.Password); err != nil {
 				return err
 			}
 		} else {
 			r.logger.Debugf("Making pod %s slave of %s", pod.Name, masterIP)
-			if err := r.redisClient.MakeSlaveOf(pod.Status.PodIP, masterIP); err != nil {
+			if err := r.redisClient.MakeSlaveOf(pod.Status.PodIP, masterIP, rf.Spec.Redis.Password); err != nil {
 				return err
 			}
 		}
@@ -119,5 +119,5 @@ func (r *RedisFailoverHealer) SetSentinelCustomConfig(ip string, rf *redisfailov
 // SetRedisCustomConfig will call redis to set the configuration given in config
 func (r *RedisFailoverHealer) SetRedisCustomConfig(ip string, rf *redisfailoverv1.RedisFailover) error {
 	r.logger.Debugf("Setting the custom config on redis %s...", ip)
-	return r.redisClient.SetCustomRedisConfig(ip, rf.Spec.Redis.CustomConfig)
+	return r.redisClient.SetCustomRedisConfig(ip, rf.Spec.Redis.Password, rf.Spec.Redis.CustomConfig)
 }

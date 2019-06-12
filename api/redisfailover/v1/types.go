@@ -36,6 +36,7 @@ type RedisSettings struct {
 	SecurityContext   *corev1.PodSecurityContext  `json:"securityContext,omitempty"`
 	Tolerations       []corev1.Toleration         `json:"tolerations,omitempty"`
 	HostPort          int32                       `json:"hostport,omitempty"`
+	Password          string                      `json:"password,omitempty"`
 }
 
 // SentinelSettings defines the specification of the sentinel cluster

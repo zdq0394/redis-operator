@@ -90,10 +90,16 @@ func generateSentinelConfigMap(rf *redisfailoverv1.RedisFailover, labels map[str
 	namespace := rf.Namespace
 
 	labels = util.MergeLabels(labels, generateSelectorLabels(sentinelRoleName, rf.Name))
-	sentinelConfigFileContent := `sentinel monitor mymaster 127.0.0.1 6379 2
-sentinel down-after-milliseconds mymaster 1000
-sentinel failover-timeout mymaster 3000
-sentinel parallel-syncs mymaster 2`
+	// 	sentinelConfigFileContent := `sentinel monitor mymaster 127.0.0.1 6379 2
+	// sentinel down-after-milliseconds mymaster 1000
+	// sentinel failover-timeout mymaster 3000
+	// sentinel parallel-syncs mymaster 2`
+
+	sentinelConfigFileContent := `sentinel monitor mymaster 127.0.0.1 6379 2\nsentinel down-after-milliseconds mymaster 1000\nsentinel failover-timeout mymaster 3000\nsentinel parallel-syncs mymaster 2`
+
+	if rf.Spec.Redis.Password != "" {
+		sentinelConfigFileContent = fmt.Sprintf("%s\nsentinel auth-pass mymaster %s", sentinelConfigFileContent, rf.Spec.Redis.Password)
+	}
 
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -113,10 +119,17 @@ func generateRedisConfigMap(rf *redisfailoverv1.RedisFailover, labels map[string
 	namespace := rf.Namespace
 
 	labels = util.MergeLabels(labels, generateSelectorLabels(redisRoleName, rf.Name))
-	redisConfigFileContent := `slaveof 127.0.0.1 6379
-tcp-keepalive 60
-save 900 1
-save 300 10`
+	// 	redisConfigFileContent := `slaveof 127.0.0.1 6379
+	// tcp-keepalive 60
+	// save 900 1
+	// save 300 10`
+
+	redisConfigFileContent := "slaveof 127.0.0.1 6379\ntcp-keepalive 60\nsave 900 1\nsave 300 10"
+
+	if rf.Spec.Redis.Password != "" {
+		redisConfigFileContent = fmt.Sprintf("%s\nrequirepass %s", redisConfigFileContent, rf.Spec.Redis.Password)
+		redisConfigFileContent = fmt.Sprintf("%s\nmasterauth %s", redisConfigFileContent, rf.Spec.Redis.Password)
+	}
 
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -136,11 +149,11 @@ func generateRedisShutdownConfigMap(rf *redisfailoverv1.RedisFailover, labels ma
 	namespace := rf.Namespace
 
 	labels = util.MergeLabels(labels, generateSelectorLabels(redisRoleName, rf.Name))
-	shutdownContent := `master=$(redis-cli -h ${RFS_REDIS_SERVICE_HOST} -p ${RFS_REDIS_SERVICE_PORT_SENTINEL} --csv SENTINEL get-master-addr-by-name mymaster | tr ',' ' ' | tr -d '\"' |cut -d' ' -f1)
-redis-cli SAVE
+	shutdownContent := fmt.Sprintf(`master=$(redis-cli -h ${RFS_REDIS_SERVICE_HOST} -p ${RFS_REDIS_SERVICE_PORT_SENTINEL} --csv SENTINEL get-master-addr-by-name mymaster | tr ',' ' ' | tr -d '\"' |cut -d' ' -f1)
+redis-cli -a %s SAVE
 if [[ $master ==  $(hostname -i) ]]; then
   redis-cli -h ${RFS_REDIS_SERVICE_HOST} -p ${RFS_REDIS_SERVICE_PORT_SENTINEL} SENTINEL failover mymaster
-fi`
+fi`, rf.Spec.Redis.Password)
 
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
@@ -164,7 +177,10 @@ func generateRedisStatefulSet(rf *redisfailoverv1.RedisFailover, labels map[stri
 	labels = util.MergeLabels(labels, selectorLabels)
 	volumeMounts := getRedisVolumeMounts(rf)
 	volumes := getRedisVolumes(rf)
-
+	checkCommand := "redis-cli -h $(hostname) ping"
+	if rf.Spec.Redis.Password != "" {
+		checkCommand = fmt.Sprintf("redis-cli -h $(hostname) -a %s ping", rf.Spec.Redis.Password)
+	}
 	ss := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            name,
@@ -212,7 +228,7 @@ func generateRedisStatefulSet(rf *redisfailoverv1.RedisFailover, labels map[stri
 										Command: []string{
 											"sh",
 											"-c",
-											"redis-cli -h $(hostname) ping",
+											checkCommand,
 										},
 									},
 								},
@@ -225,7 +241,7 @@ func generateRedisStatefulSet(rf *redisfailoverv1.RedisFailover, labels map[stri
 										Command: []string{
 											"sh",
 											"-c",
-											"redis-cli -h $(hostname) ping",
+											checkCommand,
 										},
 									},
 								},

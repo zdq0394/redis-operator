@@ -77,7 +77,7 @@ func (r *RedisFailoverChecker) CheckAllSlavesFromMaster(master string, rf *redis
 		return err
 	}
 	for _, rip := range rips {
-		slave, err := r.redisClient.GetSlaveOf(rip)
+		slave, err := r.redisClient.GetSlaveOf(rip, rf.Spec.Redis.Password)
 		if err != nil {
 			return err
 		}
@@ -130,7 +130,7 @@ func (r *RedisFailoverChecker) GetMasterIP(rf *redisfailoverv1.RedisFailover) (s
 	}
 	masters := []string{}
 	for _, rip := range rips {
-		master, err := r.redisClient.IsMaster(rip)
+		master, err := r.redisClient.IsMaster(rip, rf.Spec.Redis.Password)
 		if err != nil {
 			return "", err
 		}
@@ -153,7 +153,7 @@ func (r *RedisFailoverChecker) GetNumberMasters(rf *redisfailoverv1.RedisFailove
 		return nMasters, err
 	}
 	for _, rip := range rips {
-		master, err := r.redisClient.IsMaster(rip)
+		master, err := r.redisClient.IsMaster(rip, rf.Spec.Redis.Password)
 		if err != nil {
 			return nMasters, err
 		}
@@ -193,7 +193,7 @@ func (r *RedisFailoverChecker) GetRedisesIPandHostIPs(rf *redisfailoverv1.RedisF
 				PodIP:  rp.Status.PodIP,
 				HostIP: rp.Status.HostIP,
 			}
-			master, err := r.redisClient.IsMaster(rp.Status.PodIP)
+			master, err := r.redisClient.IsMaster(rp.Status.PodIP, rf.Spec.Redis.Password)
 			if err == nil && master {
 				redisNode.IsMaster = true
 			}
