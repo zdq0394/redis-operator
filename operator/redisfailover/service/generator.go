@@ -450,6 +450,10 @@ func createRedisExporterContainer(rf *redisfailoverv1.RedisFailover) corev1.Cont
 					},
 				},
 			},
+			{
+				Name:  "REDIS_PASSWORD",
+				Value: rf.Spec.Redis.Password,
+			},
 		},
 		Ports: []corev1.ContainerPort{
 			{
