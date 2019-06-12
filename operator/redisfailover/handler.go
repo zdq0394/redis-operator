@@ -93,7 +93,8 @@ func (r *RedisFailoverHandler) Add(_ context.Context, obj runtime.Object) error 
 		}
 		hostIPs := []string{}
 		for _, rNode := range redisNodes {
-			hostIPs = append(hostIPs, rNode.HostIP)
+			hostIP := fmt.Sprintf("%s:%d", rNode.HostIP, rf.Spec.Redis.HostPort)
+			hostIPs = append(hostIPs, hostIP)
 		}
 		r.EnsureRedisPerceptronDeployment(rf, hostIPs, labels, oRefs)
 	}
