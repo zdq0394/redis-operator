@@ -307,7 +307,7 @@ func generatePerceptronDeployment(rf *redisfailoverv1.RedisFailover, hostIPs []s
 							ImagePullPolicy: "Always",
 							Env: []corev1.EnvVar{
 								{
-									Name:  "ProxyURL",
+									Name:  "PROXY_URL",
 									Value: rf.Spec.Redis.Perceptron.ProxyURL,
 								},
 								{
