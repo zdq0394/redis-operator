@@ -320,11 +320,15 @@ func generatePerceptronDeployment(rf *redisfailoverv1.RedisFailover, hostIPs []s
 								},
 								{
 									Name:  "REGISTER_PORT",
-									Value: string(rf.Spec.Redis.Perceptron.RegisterPort),
+									Value: fmt.Sprintf("%d", rf.Spec.Redis.Perceptron.RegisterPort),
 								},
 								{
 									Name:  "TTL",
 									Value: rf.Spec.Redis.Perceptron.TTL,
+								},
+								{
+									Name:  "MAX_CONN",
+									Value: rf.Spec.Redis.Perceptron.MAXConn,
 								},
 							},
 							Ports: []corev1.ContainerPort{

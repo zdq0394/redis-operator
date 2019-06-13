@@ -67,6 +67,7 @@ type RedisPerceptron struct {
 	ProxyURL     string `json:"proxyURL,omitempty"`
 	RegisterPort int32  `json:"registerPort,omitempty"`
 	TTL          string `json:"ttl,omitempty"`
+	MAXConn      string `json:"maxConn,omitempty"`
 }
 
 // RedisStorage defines the structure used to store the Redis Data
