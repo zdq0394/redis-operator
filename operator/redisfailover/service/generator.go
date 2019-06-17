@@ -655,7 +655,7 @@ func getRedisVolumeMounts(rf *redisfailoverv1.RedisFailover) []corev1.VolumeMoun
 func getRedisVolumes(rf *redisfailoverv1.RedisFailover) []corev1.Volume {
 	configMapName := GetRedisName(rf)
 	shutdownConfigMapName := GetRedisShutdownConfigMapName(rf)
-
+	var hostPathFileType corev1.HostPathType = "File"
 	executeMode := int32(0744)
 	volumes := []corev1.Volume{
 		{
@@ -684,6 +684,7 @@ func getRedisVolumes(rf *redisfailoverv1.RedisFailover) []corev1.Volume {
 			VolumeSource: corev1.VolumeSource{
 				HostPath: &corev1.HostPathVolumeSource{
 					Path: "/usr/share/zoneinfo/Asia/Shanghai",
+					Type: &hostPathFileType,
 				},
 			},
 		},
