@@ -548,7 +548,6 @@ func createRedisExporterContainer(rf *redisfailoverv1.RedisFailover) corev1.Cont
 				Name:  "REDIS_PASSWORD",
 				Value: rf.Spec.Redis.Password,
 			},
-
 			{
 				Name:  "TZ",
 				Value: "Asia/Shanghai",
@@ -574,6 +573,12 @@ func createRedisExporterContainer(rf *redisfailoverv1.RedisFailover) corev1.Cont
 			Requests: corev1.ResourceList{
 				corev1.ResourceCPU:    resource.MustParse(exporterDefaultRequestCPU),
 				corev1.ResourceMemory: resource.MustParse(exporterDefaultRequestMemory),
+			},
+		},
+		VolumeMounts: []corev1.VolumeMount{
+			{
+				Name:      "timezone_config",
+				MountPath: "/etc/localtime",
 			},
 		},
 	}
@@ -671,6 +676,14 @@ func getRedisVolumes(rf *redisfailoverv1.RedisFailover) []corev1.Volume {
 						Name: shutdownConfigMapName,
 					},
 					DefaultMode: &executeMode,
+				},
+			},
+		},
+		{
+			Name: "timezone_config",
+			VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{
+					Path: "/usr/share/zoneinfo/Asia/Shanghai",
 				},
 			},
 		},
