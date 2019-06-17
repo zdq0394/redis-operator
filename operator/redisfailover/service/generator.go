@@ -577,7 +577,7 @@ func createRedisExporterContainer(rf *redisfailoverv1.RedisFailover) corev1.Cont
 		},
 		VolumeMounts: []corev1.VolumeMount{
 			{
-				Name:      "timezone_config",
+				Name:      "timezoneconfig",
 				MountPath: "/etc/localtime",
 			},
 		},
@@ -680,7 +680,7 @@ func getRedisVolumes(rf *redisfailoverv1.RedisFailover) []corev1.Volume {
 			},
 		},
 		{
-			Name: "timezone_config",
+			Name: "timezoneconfig",
 			VolumeSource: corev1.VolumeSource{
 				HostPath: &corev1.HostPathVolumeSource{
 					Path: "/usr/share/zoneinfo/Asia/Shanghai",
