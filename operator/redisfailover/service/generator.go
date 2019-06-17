@@ -428,6 +428,12 @@ func generateSentinelDeployment(rf *redisfailoverv1.RedisFailover, labels map[st
 							Name:            "sentinel",
 							Image:           rf.Spec.Sentinel.Image,
 							ImagePullPolicy: "Always",
+							Env: []corev1.EnvVar{
+								{
+									Name:  "TZ",
+									Value: "Asia/Shanghai",
+								},
+							},
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "sentinel",
