@@ -205,6 +205,12 @@ func generateRedisStatefulSet(rf *redisfailoverv1.RedisFailover, labels map[stri
 							Name:            "redis",
 							Image:           rf.Spec.Redis.Image,
 							ImagePullPolicy: "Always",
+							Env: []corev1.EnvVar{
+								{
+									Name:  "TZ",
+									Value: "Asia/Shanghai",
+								},
+							},
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "redis",
@@ -307,6 +313,10 @@ func generatePerceptronDeployment(rf *redisfailoverv1.RedisFailover, hostIPs []s
 							ImagePullPolicy: "Always",
 							Env: []corev1.EnvVar{
 								{
+									Name:  "TZ",
+									Value: "Asia/Shanghai",
+								},
+								{
 									Name:  "PROXY_URL",
 									Value: rf.Spec.Redis.Perceptron.ProxyURL,
 								},
@@ -380,6 +390,12 @@ func generateSentinelDeployment(rf *redisfailoverv1.RedisFailover, labels map[st
 							Name:            "sentinel-config-copy",
 							Image:           rf.Spec.Sentinel.Image,
 							ImagePullPolicy: "IfNotPresent",
+							Env: []corev1.EnvVar{
+								{
+									Name:  "TZ",
+									Value: "Asia/Shanghai",
+								},
+							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "sentinel-config",
@@ -525,6 +541,11 @@ func createRedisExporterContainer(rf *redisfailoverv1.RedisFailover) corev1.Cont
 			{
 				Name:  "REDIS_PASSWORD",
 				Value: rf.Spec.Redis.Password,
+			},
+
+			{
+				Name:  "TZ",
+				Value: "Asia/Shanghai",
 			},
 		},
 		Args: []string{
