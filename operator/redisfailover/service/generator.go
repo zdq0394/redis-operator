@@ -575,12 +575,6 @@ func createRedisExporterContainer(rf *redisfailoverv1.RedisFailover) corev1.Cont
 				corev1.ResourceMemory: resource.MustParse(exporterDefaultRequestMemory),
 			},
 		},
-		VolumeMounts: []corev1.VolumeMount{
-			{
-				Name:      "timezoneconfig",
-				MountPath: "/etc/localtime",
-			},
-		},
 	}
 }
 
@@ -655,7 +649,6 @@ func getRedisVolumeMounts(rf *redisfailoverv1.RedisFailover) []corev1.VolumeMoun
 func getRedisVolumes(rf *redisfailoverv1.RedisFailover) []corev1.Volume {
 	configMapName := GetRedisName(rf)
 	shutdownConfigMapName := GetRedisShutdownConfigMapName(rf)
-	var hostPathFileType corev1.HostPathType = "File"
 	executeMode := int32(0744)
 	volumes := []corev1.Volume{
 		{
@@ -676,15 +669,6 @@ func getRedisVolumes(rf *redisfailoverv1.RedisFailover) []corev1.Volume {
 						Name: shutdownConfigMapName,
 					},
 					DefaultMode: &executeMode,
-				},
-			},
-		},
-		{
-			Name: "timezoneconfig",
-			VolumeSource: corev1.VolumeSource{
-				HostPath: &corev1.HostPathVolumeSource{
-					Path: "/usr/share/zoneinfo/Asia/Shanghai",
-					Type: &hostPathFileType,
 				},
 			},
 		},
